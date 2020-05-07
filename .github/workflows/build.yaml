@@ -1,7 +1,8 @@
 name: Build
 
 on:
-  create:
+  push:
+    tags:
 
 jobs:
   builddocker:
