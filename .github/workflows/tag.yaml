@@ -1,0 +1,17 @@
+name: CI
+
+on:
+  push:
+    branches: [ tagging ]
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Github Tag
+        uses: mathieudutour/github-tag-action@v4.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          dry_run: true
+          release_branches: tagging
