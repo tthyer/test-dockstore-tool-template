@@ -11,4 +11,4 @@ jobs:
     - uses: actions/checkout@v2
     - name: Test stuff
       run: |
-        echo "GITHUB_REF = ${{ env.GITHUB_REF }}"
+        echo "GITHUB_REF = ${{ github.ref }}"
