@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  builddocker:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Test stuff
+      run: |
+        echo "GITHUB_REF = ${{ env.GITHUB_REF }}"
+    # - name: Publish to Registry
+    #   uses: elgohr/Publish-Docker-Github-Action@master
+    #   with:
+    #     name: tessthyer/${{ github.event.repository.name }}
+    #     username: ${{ secrets.DOCKER_USERNAME }}
+    #     password: ${{ secrets.DOCKER_PASSWORD }}
+    #     tags: "${{ env.NEW_VERSION }},${{ env.SOFTWARE_VERSION }},latest"
