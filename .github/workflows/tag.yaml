@@ -14,9 +14,11 @@ jobs:
         uses: rymndhng/release-on-push-action@v0.14.0
         with:
           bump_version_scheme: patch
+          prerelease: false
           
       - name: Check Output Parameters
         run: echo "Got version ${{ steps.release.outputs.tag_name }}"
+
   # tag:
   #   runs-on: ubuntu-latest
   #   steps:
