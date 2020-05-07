@@ -15,3 +15,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           dry_run: false
           release_branches: tagging
+          create_annotated_tag: true
