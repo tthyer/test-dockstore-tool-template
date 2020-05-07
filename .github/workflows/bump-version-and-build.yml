@@ -37,12 +37,17 @@ jobs:
         echo "::set-env name=SOFTWARE_VERSION::$software_version"
     - name: Bump version
       run: |
-        echo "${{ env.NEW_VERSION }}" > VERSION
-        git config --global user.name 'Sage Bionetworks Dockstore Tool Service'
-        git config --global user.email '64548831+sagedockstoretools@users.noreply.github.com'
-        git commit -am "Bump version to ${{ env.NEW_VERSION }}"
-        git push
-        echo "Bump version to ${{ env.NEW_VERSION }}"
+        version=$(cat VERSION)
+        if [[ $version != ${{ env.NEW_VERSION }} ]]; then
+          echo "${{ env.NEW_VERSION }}" > VERSION
+          git config --global user.name 'Sage Bionetworks Dockstore Tool Service'
+          git config --global user.email '64548831+sagedockstoretools@users.noreply.github.com'
+          git commit -am "Bump version to ${{ env.NEW_VERSION }}"
+          git push
+          echo "Bump version to ${{ env.NEW_VERSION }}"
+        else
+          echo "Bumping version to ${{ env.NEW_VERSION }} already happened"
+        fi
         
   build:
     runs-on: ubuntu-latest
