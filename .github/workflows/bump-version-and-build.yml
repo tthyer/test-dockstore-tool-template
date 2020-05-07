@@ -13,7 +13,7 @@ name: CI
 # Triggers the workflow on push events but only for the master branch
 on:
   push:
-    branches: [ master ]
+    branches: [ never ]
 
 jobs:
   bump:
