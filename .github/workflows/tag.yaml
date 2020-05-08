@@ -16,11 +16,11 @@ jobs:
           set -xe
 
           echo "tag my own"
-          tag=$(git describe --tags --always)
+          tag=$(git describe --tags $(git rev-list --tags --max-count=1))
           short_sha=$(git rev-parse --short HEAD)
-          if [[ "$tag" == "$short_sha" || -z "$t" ]]
+          if [[ "$tag" == "$short_sha" || -z "$tag" ]]
           then
-            tag=0.0.0
+            tag=v0.0.0
           fi
           patch="${tag##*.}"
           new_patch=$((patch+1))
