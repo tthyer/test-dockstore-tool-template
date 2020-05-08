@@ -2,7 +2,7 @@ name: Tag
 
 on:
   push:
-    branches: [ tagging ]
+    branches: [ never ]
 
 jobs:
   # tag-on-push:
@@ -46,7 +46,7 @@ jobs:
           # secrets.GH_PERSONAL_ACCESS_TOKEN rather than secrets.GITHUB_TOKEN.
           # If you use the latter, it will not trigger other actions. See for
           # example https://github.community/t5/GitHub-Actions/Push-from-action-even-with-PAT-does-not-trigger-action/m-p/46293#M6505
-          # and https://github.community/t5/GitHub-Actions/Action-does-not-trigger-another-on-push-tag-action/m-p/40978/highlight/true#M4441
+          # and 
           github_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
           dry_run: false
           release_branches: tagging
