@@ -11,13 +11,31 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v2
-      - id: release
-        uses: rymndhng/release-on-push-action@v0.14.0
-        with:
-          bump_version_scheme: patch
-          prerelease: false
-      - name: Check Output Parameters
-        run: echo "Got version ${{ steps.release.outputs.tag_name }}"
+      - name: tag-my-own
+        run: |
+          set -xe
+
+          echo "tag my own"
+          tag=$(git describe --tags --always)
+          short_sha=$(git rev-parse --short HEAD)
+          if [[ "$tag" == "$short_sha" || -z "$t" ]]
+          then
+            tag=0.0.0
+          fi
+          patch="${tag##*.}"
+          new_patch=$((patch+1))
+          new_tag="${tag%.*}.${new_patch}"
+          git tag $new_tag
+          git push --tags
+
+          set +xe
+      # - id: release
+      #   uses: rymndhng/release-on-push-action@v0.14.0
+      #   with:
+      #     bump_version_scheme: patch
+      #     prerelease: false
+      # - name: Check Output Parameters
+      #   run: echo "Got version ${{ steps.release.outputs.tag_name }}"
 
   # tag:
   #   runs-on: ubuntu-latest
