@@ -10,8 +10,9 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v2
-      - name: tag-my-own
+      - name: checkout
+        uses: actions/checkout@v1
+      - name: tag
         run: |
           set -xe
 
@@ -26,9 +27,13 @@ jobs:
           new_patch=$((patch+1))
           new_tag="${tag%.*}.${new_patch}"
           git tag $new_tag
-          git push --tags
 
           set +xe
+      - name: push
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tags: true
       # - id: release
       #   uses: rymndhng/release-on-push-action@v0.14.0
       #   with:
