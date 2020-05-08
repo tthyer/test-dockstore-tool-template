@@ -10,12 +10,12 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
+      - uses: actions/checkout@v2
       - id: release
         uses: rymndhng/release-on-push-action@v0.14.0
         with:
           bump_version_scheme: patch
           prerelease: false
-          
       - name: Check Output Parameters
         run: echo "Got version ${{ steps.release.outputs.tag_name }}"
 
