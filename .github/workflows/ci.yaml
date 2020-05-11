@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+
+jobs:
+  tag_and_build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git Checkout
+        id: git_checkout
+        uses: actions/checkout@v2
+# Build image to test
+# Test cwl step (stop action if failure)
+# Step to get next version number
+# Edit cwl file and commit
+      - name: Git Tag
+        id: git_tag
+        # this step runs only if not a tag push
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        uses: mathieudutour/github-tag-action@v4.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          dry_run: false
+          release_branches: master
+          create_annotated_tag: false
+      - name: Set Docker Version
+        id: new_docker_version
+        run: |
+          # get version from tagging step for a branch push
+          new_docker_version=${{ steps.git_tag.outputs.new_version }}
+          # otherwise get tag version if a tag push
+          if [[ -z $new_docker_version ]]
+          then
+            new_docker_version=${GITHUB_REF/refs\/tags\//}
+          fi
+          echo "::set-env name=NEW_DOCKER_VERSION::$new_docker_version"
+      - name: Publish Docker Image
+        id: docker_publish
+        uses: docker/build-push-action@v1
+        with:
+          repository: tessthyer/${{ github.event.repository.name }}
+          # TODO: see about using service account
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          tags: "${{ env.NEW_DOCKER_VERSION }},latest"
