@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - tagging2
+      - master
     tags:
       - 'v*'
 
@@ -14,15 +14,19 @@ jobs:
       - name: Git Checkout
         id: git_checkout
         uses: actions/checkout@v2
+# Build image to test
+# Test cwl step (stop action if failure)
+# Step to get next version number
+# Edit cwl file and commit
       - name: Git Tag
         id: git_tag
-        # this step only if not a tag push
+        # this step runs only if not a tag push
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         uses: mathieudutour/github-tag-action@v4.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           dry_run: false
-          release_branches: tagging2
+          release_branches: master
           create_annotated_tag: false
       - name: Set Docker Version
         id: new_docker_version
@@ -32,7 +36,6 @@ jobs:
           # otherwise get tag version if a tag push
           if [[ -z $new_docker_version ]]
           then
-            # Safe to assume from way on push is set up
             new_docker_version=${GITHUB_REF/refs\/tags\//}
           fi
           echo "::set-env name=NEW_DOCKER_VERSION::$new_docker_version"
