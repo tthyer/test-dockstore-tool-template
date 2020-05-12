@@ -6,12 +6,13 @@ on:
       - jobify
 
 jobs:
-  test_and_bump:
+  test:
     if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
+
       - name: Git Checkout
         id: git_checkout
         uses: actions/checkout@v2
@@ -22,18 +23,51 @@ jobs:
         with:
           python-version: '3.7'
 
-      - name: Install Test Dependencies
-        id: setup_test_dependencies
+      - name: Setup Test Environment
+        id: setup_test_environment
         run: |
-          python -m pip install --upgrade pip
           python -m pip install pyyaml cwltest cwlref-runner
+          short_sha=${GITHUB_SHA::8}
+          echo "::set-env name=SHORT_SHA::$short_sha"
+
+      - name: Build Docker Image For testing
+        id: docker_build
+        uses: docker/build-push-action@v1
+        with:
+          repository: tessthyer/${{ github.event.repository.name }}
+          push: false # don't push before testing
+          tags: ${{ env.SHORT_SHA }}
+
+      - name: Edit CWL file tool version
+        id: edit_cwl
+        run: |
+          tool_path='echo.cwl' # TODO set as env var at job level
+          new_version=${{ env.SHORT_SHA }}
+          python bump_cwl_version.py $tool_path $new_version
+
+      - name: Test CWL
+        id: test_cwl
+        run: |
+          cwltest --test test-descriptions.yaml --tool cwl-runner
+
+  build:
+    if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+
+      - name: Git Checkout
+        id: git_checkout
+        uses: actions/checkout@v2
 
       - name: Calculate Next Autotagging Version
         id: calc_version
         uses: mathieudutour/github-tag-action@v4.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          dry_run: true # this calculates the next version without actually tagging
+          dry_run: true # calculate the next version without actually tagging
           release_branches: jobify
 
       - name: Set Env Vars
@@ -44,15 +78,10 @@ jobs:
           echo "::set-env name=NEW_VERSION::$new_version"
           echo "::set-env name=NEW_GIT_TAG::$new_tag"
 
-      - name: Build Docker Image For testing
-        id: docker_build
-        uses: docker/build-push-action@v1
-        with:
-          repository: tessthyer/${{ github.event.repository.name }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          push: false # don't push before testing
-          tags: ${{ env.NEW_VERSION }}
+      - name: Setup Python
+        id: setup_python
+        run: |
+          python -m pip install pyyaml
 
       - name: Edit CWL file tool version
         id: edit_cwl
@@ -60,11 +89,6 @@ jobs:
           tool_path='echo.cwl'
           new_version=${{ env.NEW_VERSION }}
           python bump_cwl_version.py $tool_path $new_version
-
-      - name: Test CWL
-        id: test_cwl
-        run: |
-          cwltest --test test-descriptions.yaml --tool cwl-runner
 
       - name: Commit, Tag, Push
         id: commit_tag_push
