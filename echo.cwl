@@ -1,20 +1,21 @@
-#!/usr/bin/env cwl-runner
-
-cwlVersion: v1.0
+arguments:
+- $(inputs.message)
+baseCommand:
+- echo
+- -n
 class: CommandLineTool
+cwlVersion: v1.0
+hints:
+  DockerRequirement:
+    dockerPull: tessthyer/test-dockstore-tool-template:0.1.2
 inputs:
   message:
     type: string
 outputs:
   out:
-    type: string
     outputBinding:
       glob: out.txt
       loadContents: true
       outputEval: $(self[0].contents)
-baseCommand: [echo, -n]
-arguments: [ $(inputs.message) ]
+    type: string
 stdout: out.txt
-hints:
-  DockerRequirement:
-    dockerPull: tessthyer/test-dockstore-tool-template:alpha
