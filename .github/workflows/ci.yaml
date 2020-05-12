@@ -1,100 +1,110 @@
-name: CI
+name: BRANCH CI
 
 on:
   push:
     branches:
       - master
-    tags:
-      - 'v*'
 
 jobs:
-  tag_and_build:
+  test:
+    if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
+
       - name: Git Checkout
         id: git_checkout
         uses: actions/checkout@v2
+
       - name: Setup Python
         id: setup_python
         uses: actions/setup-python@v1
         with:
           python-version: '3.7'
-      - name: Install Test Dependencies
-        id: setup_test_dependencies
+
+      - name: Setup Test Environment
+        id: setup_test_environment
         run: |
-          python -m pip install --upgrade pip
           python -m pip install pyyaml cwltest cwlref-runner
-      - name: Calculate Next Autotagging Version
-        id: calc_version
-        # this step runs only if not a tag push
-        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        uses: mathieudutour/github-tag-action@v4.2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          dry_run: true
-          release_branches: master
-      - name: Set Version
-        id: new_version
-        run: |
-          # get version from tagging step for a branch push
-          new_version=${{ steps.calc_version.outputs.new_version }}
-          # otherwise get tag version if a tag push
-          if [[ -z $new_version ]]
-          then
-            new_version=${GITHUB_REF/refs\/tags\//}
-          fi
-          echo "::set-env name=NEW_VERSION::$new_version"
+          short_sha=${GITHUB_SHA::8}
+          echo "::set-env name=SHORT_SHA::$short_sha"
+
       - name: Build Docker Image For testing
         id: docker_build
-        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         uses: docker/build-push-action@v1
         with:
           repository: tessthyer/${{ github.event.repository.name }}
-          # TODO: see about using service account
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
           push: false # don't push before testing
-          tags: ${{ env.NEW_VERSION }}
+          tags: ${{ env.SHORT_SHA }}
+
       - name: Edit CWL file tool version
         id: edit_cwl
-        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: |
+          tool_path='echo.cwl' # TODO set as env var at job level
+          new_version=${{ env.SHORT_SHA }}
+          python bump_cwl_version.py $tool_path $new_version
+
+      - name: Test CWL
+        id: test_cwl
+        run: |
+          cwltest --test test-descriptions.yaml --tool cwl-runner
+
+  build:
+    if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+
+      - name: Git Checkout
+        id: git_checkout
+        uses: actions/checkout@v2
+
+      - name: Calculate Next Autotagging Version
+        id: calc_version
+        uses: mathieudutour/github-tag-action@v4.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          dry_run: true # calculate the next version without actually tagging
+          release_branches: master
+
+      - name: Set Env Vars
+        id: set_version_env_vars
+        run: |
+          new_version=${{ steps.calc_version.outputs.new_version }}
+          new_tag=${{ steps.calc_version.outputs.new_tag }}
+          echo "::set-env name=NEW_VERSION::$new_version"
+          echo "::set-env name=NEW_GIT_TAG::$new_tag"
+
+      - name: Setup Python
+        id: setup_python
+        run: |
+          python -m pip install pyyaml
+
+      - name: Edit CWL file tool version
+        id: edit_cwl
         run: |
           tool_path='echo.cwl'
           new_version=${{ env.NEW_VERSION }}
           python bump_cwl_version.py $tool_path $new_version
-      - name: Test CWL
-        id: test_cwl
-        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+
+      - name: Commit, Tag, Push
+        id: commit_tag_push
         run: |
-          cwltest --test test-descriptions.yaml --tool cwl-runner
-      - name: Commit CWL
-        run: |
-          new_version=${{ env.NEW_VERSION }}
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -m "Update docker image version in CWL tool to $new_version" -a
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Git Tag
-        id: git_tag
-        # this step runs only if not a tag push
-        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        uses: mathieudutour/github-tag-action@v4.2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          dry_run: false
-          release_branches: master
-          create_annotated_tag: false
+          git add .
+          git commit -a -m "Update docker image version in CWL tool to ${{ env.NEW_VERSION }}"
+          git tag ${{ env.NEW_GIT_TAG }}
+          git push && git push --tags
+
       - name: Publish Docker Image
         id: docker_publish
         uses: docker/build-push-action@v1
         with:
           repository: tessthyer/${{ github.event.repository.name }}
-          # TODO: see about using service account
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           tags: ${{ env.NEW_VERSION }},latest
