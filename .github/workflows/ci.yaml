@@ -10,10 +10,22 @@ on:
 jobs:
   tag_and_build:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Git Checkout
         id: git_checkout
         uses: actions/checkout@v2
+      - name: Setup Python
+        id: setup_python
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.7'
+      - name: Install Test Dependencies
+        id: setup_test_dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pyyaml cwltest cwlref-runner
       - name: Calculate Next Autotagging Version
         id: calc_version
         # this step runs only if not a tag push
@@ -36,6 +48,7 @@ jobs:
           echo "::set-env name=NEW_VERSION::$new_version"
       - name: Build Docker Image For testing
         id: docker_build
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         uses: docker/build-push-action@v1
         with:
           repository: tessthyer/${{ github.event.repository.name }}
@@ -46,17 +59,26 @@ jobs:
           tags: ${{ env.NEW_VERSION }}
       - name: Edit CWL file tool version
         id: edit_cwl
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         run: |
-          echo "hello, world"
+          tool_path='echo.cwl'
+          new_version=${{ env.NEW_VERSION }}
+          python bump_cwl_version.py $tool_path $new_version
       - name: Test CWL
         id: test_cwl
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         run: |
-          echo "hello, world? testing, testing"
+          cwltest --test test-descriptions.yaml --tool cwl-runner
       - name: Commit CWL
-        id: commit_cwl_change
         run: |
-          echo "hello world, this is a git commit"
-          exit 1
+          new_version=${{ env.NEW_VERSION }}
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -m "Update docker image version in CWL tool to $new_version" -a
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Git Tag
         id: git_tag
         # this step runs only if not a tag push
