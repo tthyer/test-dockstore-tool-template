@@ -7,11 +7,11 @@ on:
 
 jobs:
   test_and_bump:
+    if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-
       - name: Git Checkout
         id: git_checkout
         uses: actions/checkout@v2
@@ -49,7 +49,6 @@ jobs:
         uses: docker/build-push-action@v1
         with:
           repository: tessthyer/${{ github.event.repository.name }}
-          # TODO: see about using service account
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           push: false # don't push before testing
@@ -77,27 +76,11 @@ jobs:
           git tag ${{ env.NEW_GIT_TAG }}
           git push && git push --tags
 
-      # - name: Commit CWL Change
-      #   id: commit_cwl
-      #   uses: stefanzweifel/git-auto-commit-action@v4.2.0
-      #   with:
-      #     commit_message: "Update docker image version in CWL tool to ${{ env.NEW_VERSION }}"
-
-      # - name: Git Tag
-      #   id: git_tag
-      #   uses: mathieudutour/github-tag-action@v4.2
-      #   with:
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     dry_run: false
-      #     release_branches: jobify
-      #     create_annotated_tag: false
-
       - name: Publish Docker Image
         id: docker_publish
         uses: docker/build-push-action@v1
         with:
           repository: tessthyer/${{ github.event.repository.name }}
-          # TODO: see about using service account
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           tags: ${{ env.NEW_VERSION }},latest
