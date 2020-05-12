@@ -73,6 +73,10 @@ jobs:
         with:
           commit_message: "Update docker image version in CWL tool to ${{ env.NEW_VERSION }}"
 
+      - name: Git Checkout Again
+        id: git_checkout_after_push
+        uses: actions/checkout@v2
+
       - name: Git Tag
         id: git_tag
         uses: mathieudutour/github-tag-action@v4.2
