@@ -3,7 +3,7 @@ name: BRANCH CI
 on:
   push:
     branches:
-      - jobify
+      - master
 
 jobs:
   test:
@@ -68,7 +68,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           dry_run: true # calculate the next version without actually tagging
-          release_branches: jobify
+          release_branches: master
 
       - name: Set Env Vars
         id: set_version_env_vars
