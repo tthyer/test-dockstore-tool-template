@@ -1,0 +1,40 @@
+name: TAG CI
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  tag_and_build:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NEW_VERSION: ${GITHUB_REF/refs\/tags\//}
+    steps:
+
+      - name: Git Checkout
+        id: git_checkout
+        uses: actions/checkout@v2
+
+      # - name: Set Version
+      #   id: new_version
+      #   run: |
+      #     # get version from tagging step for a branch push
+      #     new_version=${{ steps.calc_version.outputs.new_version }}
+      #     # otherwise get tag version if a tag push
+      #     if [[ -z $new_version ]]
+      #     then
+      #       new_version=${GITHUB_REF/refs\/tags\//}
+      #     fi
+      #     echo "::set-env name=NEW_VERSION::$new_version"
+
+      - name: Publish Docker Image
+        id: docker_publish
+        uses: docker/build-push-action@v1
+        with:
+          repository: tessthyer/${{ github.event.repository.name }}
+          # TODO: see about using service account
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          tags: ${{ env.NEW_VERSION }},latest
