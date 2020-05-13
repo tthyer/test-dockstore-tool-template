@@ -19,7 +19,7 @@ jobs:
       - name: Set Version
         id: new_version
         run: |
-          new_version=${GITHUB_REF/refs\/tags\//}
+          new_version=${GITHUB_REF#"/refs/tags/v"}
           echo "::set-env name=NEW_VERSION::$new_version"
 
       - name: Publish Docker Image
