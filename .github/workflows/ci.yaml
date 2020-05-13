@@ -43,7 +43,7 @@ jobs:
         run: |
           tools_dir=cwl
           new_version=${{ env.SHORT_SHA }}
-          python bump_cwl_version.py $tools_dir $new_version
+          python utils/bump_cwl_version.py $tools_dir $new_version
 
       - name: Test CWL
         id: test_cwl
@@ -94,7 +94,7 @@ jobs:
         run: |
           tools_dir=cwl
           new_version=${{ env.NEW_VERSION }}
-          python bump_cwl_version.py $tools_dir $new_version
+          python utils/bump_cwl_version.py $tools_dir $new_version
 
       - name: Commit, Tag, Push
         id: commit_tag_push
