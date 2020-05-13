@@ -52,10 +52,13 @@ Versioning is achieved through git tagging using a semantic versioning.
 Each push to master will generate an increment to the patch value, unless the
 commit contains the string '[skip-ci]'.
 
-Minor and major releases are done manually, in part:
+Use the release script to do a minor or major release. Alternately, to do a
+minor or major releases manually:
 #Determine what the tag value will be. For example, to make a minor release from v0.1.22, the next tag would be v0.2.0.
 #In the CWL tools, change the docker version to use that tag, and create a commit like "Update docker version in cwl tools in preparation for minor release"
 #Run the tagging commmand: `git tag v0.2.0`
 #Push the tag: `git push --tags`
 
-Tag push will activate the `tag-ci.yaml` action instead of the `ci.yaml` action.
+Whether you use the release script or create a manual tag, a tag push activates
+the `tag-ci.yaml` action instead of the `ci.yaml` action, and builds the docker 
+image tagged with the release version number.
