@@ -1,11 +1,23 @@
 #! /usr/bin/env python
 
+import argparse
+
 import semver
 import git
 import bump_cwl_version
 
+
+parser = argparse.ArgumentParser(
+  description='Create a git release')
+parser.add_argument(
+  '--major',
+  action='store_true',
+  help='creates a major release')
+args = parser.parse_args()
+major_bump = args.major
+
 repo = git.Repo('.') # assumes script is run from repo root
-assert not repo.is_dirty(), 'Cannot create a release: repo is dirty. Commit first, then rerun script.'
+#assert not repo.is_dirty(), 'Cannot create a release: repo is dirty. Commit first, then rerun script.'
 
 # ensure everything is up to date
 repo.remote().fetch()
@@ -21,7 +33,10 @@ last_tag = str(tags_sorted[-1])
 
 # use semver to create the new version
 current_version = semver.VersionInfo.parse(last_tag[1:])
-new_version = current_version.bump_minor()
+if major_bump:
+  new_version = current_version.bump_major()
+else:
+  new_version = current_version.bump_minor()
 
 # update the version for all cwl tools
 tools_dir = 'cwl' # again, assuming relative to repo root
