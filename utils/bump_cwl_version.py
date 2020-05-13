@@ -53,9 +53,14 @@ def parse_args():
   return args.tool_dir, args.new_version
 
 
-tool_dir, new_version = parse_args()
-tool_paths = tools_list(tool_dir)
-for tool_path in tool_paths:
-  tool = read_tool(path=tool_path)
-  output = edit_tool(tool=tool, new_version=new_version)
-  write_tool(path=tool_path, output=output)
+def main(tools_dir, new_version):
+  tool_paths = tools_list(tools_dir)
+  for tool_path in tool_paths:
+    tool = read_tool(path=tool_path)
+    output = edit_tool(tool=tool, new_version=new_version)
+    write_tool(path=tool_path, output=output)
+
+
+if __name__ == '__main__':
+  tools_dir, new_version = parse_args()
+  main(tools_dir=tools_dir, new_version=new_version)
