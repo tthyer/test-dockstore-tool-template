@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - master
+      - move-test-descriptions
 
 jobs:
   test:
@@ -48,7 +48,7 @@ jobs:
       - name: Test CWL
         id: test_cwl
         run: |
-          cwltest --test test-descriptions.yaml --tool cwl-runner
+          cwltest --test tests/test-descriptions.yaml --tool cwl-runner
 
   build:
     if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
@@ -77,10 +77,8 @@ jobs:
         id: calc_version
         uses: mathieudutour/github-tag-action@v4.2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           dry_run: true # calculate the next version without actually tagging
-          release_branches: master
-
+          release_branches: move-test-descriptions
       - name: Set Env Vars
         id: set_version_env_vars
         run: |
