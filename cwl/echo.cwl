@@ -7,7 +7,7 @@ class: CommandLineTool
 cwlVersion: v1.0
 hints:
   DockerRequirement:
-    dockerPull: tessthyer/test-dockstore-tool-template:1.0.5-0373828
+    dockerPull: tessthyer/test-dockstore-tool-template:6f008934
 inputs:
   message:
     type: string
