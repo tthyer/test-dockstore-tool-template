@@ -75,6 +75,7 @@ jobs:
 
       - name: Calculate Next Autotagging Version
         id: calc_version
+        if: github.ref == 'ref/head/master'
         uses: mathieudutour/github-tag-action@v4.2
         with:
           dry_run: true # calculate the next version without actually tagging
@@ -84,7 +85,14 @@ jobs:
         id: set_version_env_vars
         run: |
           new_version=${{ steps.calc_version.outputs.new_version }}
+          # if this isn't master, use short sha as the version
+          if [[ -z $new_version ]]; then
+            new_version=${GITHUB_SHA::8}
+          fi
           new_tag=${{ steps.calc_version.outputs.new_tag }}
+          if [[ -z $new_tag ]]; then
+            new_tag=$new_version
+          fi
           echo "::set-env name=NEW_VERSION::$new_version"
           echo "::set-env name=NEW_GIT_TAG::$new_tag"
 
