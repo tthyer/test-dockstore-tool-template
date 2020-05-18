@@ -7,7 +7,8 @@ This template sets up an opinionated way to organize Docker, CWL, and tests for 
 
 ## Dockerfile
 
-A Dockerfile should exist in the top level directory of this repository.
+A Dockerfile should exist in the top level directory of this repository. An associated SOFTWARE_VERSION file can be
+modified to build a new version of the software.
 
 ## CWL
 
