@@ -21,7 +21,7 @@ doc: 'STAR: Spliced Transcripts Alignment to a Reference.
   '
 hints:
 - class: DockerRequirement
-  dockerPull: tessthyer/test-dockstore-tool-template:1.1.2
+  dockerPull: tessthyer/test-dockstore-tool-template:1.1.3
 inputs:
 - id: mate_1_fastq
   inputBinding:
