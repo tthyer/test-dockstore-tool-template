@@ -64,4 +64,8 @@ the `tag-ci.yaml` action instead of the `ci.yaml` action, and builds the docker
 image tagged with the release version number.
 
 #### Branch Versioning
-TODO: write this section on how to optionally set up branch versioning
+Optionally, you can set your repository up for running the CI action on pushes
+to branches. This is not the default behavior because it introduces complexity
+and requires that you use git in a certain way.
+
+*TODO: finish writing this section*
