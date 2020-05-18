@@ -127,4 +127,4 @@ requirements:
 - class: InlineJavascriptRequirement
 - class: StepInputExpressionRequirement
 - class: DockerRequirement
-  dockerPull: tessthyer/test-dockstore-tool-template:1.1.2-9bc36c0
+  dockerPull: tessthyer/test-dockstore-tool-template:1.1.2
