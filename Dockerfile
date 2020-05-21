@@ -17,7 +17,7 @@ RUN apt-get update \
     binutils \
     build-essential \
     libz-dev \
-    wget 
+    wget
 
 # Install STAR aligner
 RUN export SOFTWARE_VERSION=$(cat /SOFTWARE_VERSION) \

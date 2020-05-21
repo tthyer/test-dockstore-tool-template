@@ -61,7 +61,7 @@ minor or major releases manually:
 #Push the tag: `git push --tags`
 
 Whether you use the release script or create a manual tag, a tag push activates
-the `tag-ci.yaml` action instead of the `ci.yaml` action, and builds the docker 
+the `tag-ci.yaml` action instead of the `ci.yaml` action, and builds the docker
 image tagged with the release version number.
 
 #### Branch Versioning
